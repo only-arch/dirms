@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>야근 달력</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 15% 15%,#ffe1ec 0 8%,transparent 9%),
+    radial-gradient(circle at 85% 10%,#dff3ff 0 9%,transparent 10%),
+    radial-gradient(circle at 20% 85%,#fff0b8 0 8%,transparent 9%),
+    linear-gradient(135deg,#fff7fb,#f4f8ff);
+  font-family:'Pretendard','Malgun Gothic',sans-serif;
+  color:#4a4050;
+}
+.wrap{max-width:980px;margin:28px auto;padding:22px}
+.card{
+  background:rgba(255,255,255,.88);
+  border:2px solid #ffd6e7;
+  border-radius:34px;
+  padding:26px;
+  box-shadow:0 18px 40px rgba(255,140,180,.18);
+  backdrop-filter:blur(8px);
+}
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  margin-bottom:18px;
+}
+.title{
+  font-size:30px;
+  font-weight:900;
+  color:#ff6fa8;
+}
+.title:before{content:"🌙 "}
+.title:after{content:" ✨"}
+.nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{
+  border:0;
+  border-radius:999px;
+  background:#ff8fbd;
+  color:white;
+  padding:10px 15px;
+  cursor:pointer;
+  font-weight:900;
+  box-shadow:0 5px 0 #e86a9d;
+}
+button:active{transform:translateY(3px);box-shadow:0 2px 0 #e86a9d}
+button.gray{background:#9eb7ff;box-shadow:0 5px 0 #7894e8}
+.month{
+  min-width:160px;
+  text-align:center;
+  font-size:21px;
+  font-weight:900;
+  background:#fff3ac;
+  border:2px solid #ffe173;
+  border-radius:999px;
+  padding:9px 14px;
+}
+.summary{
+  margin:14px 0 20px;
+  padding:18px;
+  border-radius:24px;
+  background:#fff0f7;
+  border:2px dashed #ffb7d2;
+  font-size:19px;
+  font-weight:900;
+  color:#d94f8e;
+}
+.calendar{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:9px;
+}
+.weekday{
+  text-align:center;
+  font-weight:900;
+  color:#8c7a91;
+  padding:9px 0;
+  background:#f4ecff;
+  border-radius:999px;
+}
+.day{
+  min-height:124px;
+  border:2px solid #f2dcec;
+  border-radius:24px;
+  background:#fff;
+  padding:11px;
+  box-shadow:0 8px 18px rgba(130,90,120,.08);
+}
+.day.other{
+  background:#f7f4f7;
+  color:#bbb0bd;
+}
+.date{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:30px;
+  height:30px;
+  margin-bottom:10px;
+  border-radius:50%;
+  background:#ffe6f1;
+  color:#ff6fa8;
+  font-weight:900;
+}
+.label{
+  font-size:12px;
+  color:#8d8090;
+  margin-bottom:5px;
+  font-weight:800;
+}
+input{
+  width:100%;
+  border:2px solid #ead7e6;
+  border-radius:15px;
+  padding:10px;
+  font-size:15px;
+  background:#fffafd;
+}
+input:focus{
+  outline:none;
+  border-color:#ff8fbd;
+  box-shadow:0 0 0 4px #ffe1ef;
+}
+.paybox{
+  margin-top:22px;
+  padding:20px;
+  border-radius:26px;
+  background:#fffbe8;
+  border:2px solid #ffe58a;
+}
+.paybox:before{
+  content:"🧮 급여 계산기";
+  display:block;
+  margin-bottom:12px;
+  font-size:18px;
+  font-weight:900;
+  color:#b88300;
+}
+.paygrid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:12px;
+}
+.payitem{
+  background:#fff;
+  border:2px solid #ffe8a8;
+  border-radius:22px;
+  padding:15px;
+}
+.payitem label{
+  display:block;
+  font-size:13px;
+  font-weight:900;
+  color:#a87500;
+  margin-bottom:8px;
+}
+.payvalue{
+  font-size:21px;
+  font-weight:900;
+  color:#4a4050;
+}
+.memo{
+  margin-top:18px;
+  color:#887d8c;
+  font-size:13px;
+  line-height:1.7;
+  background:#f7f2ff;
+  border-radius:20px;
+  padding:14px 16px;
+}
+@media(max-width:700px){
+  .wrap{padding:12px}
+  .card{padding:18px;border-radius:26px}
+  .top{flex-direction:column;align-items:stretch}
+  .title{text-align:center;font-size:26px}
+  .calendar{gap:6px}
+  .day{min-height:100px;padding:7px;border-radius:18px}
+  .paygrid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="top">
+      <div class="title">야근 달력</div>
+      <div class="nav">
+        <button onclick="moveMonth(-1)">이전 달</button>
+        <div class="month" id="monthTitle"></div>
+        <button onclick="moveMonth(1)">다음 달</button>
+        <button class="gray" onclick="clearMonth()">이번 달 초기화</button>
+      </div>
+    </div>
+
+    <div class="summary">
+      이번 달 야근 합계: <span id="total">0</span>시간
+    </div>
+
+    <div class="calendar" id="calendar"></div>
+
+    <div class="paybox">
+      <div class="paygrid">
+        <div class="payitem">
+          <label>1시간 금액</label>
+          <input id="hourlyPay" type="number" min="0" placeholder="예: 12000">
+        </div>
+        <div class="payitem">
+          <label>이번 달 야근시간</label>
+          <div class="payvalue"><span id="payHours">0</span>시간</div>
+        </div>
+        <div class="payitem">
+          <label>예상 금액</label>
+          <div class="payvalue"><span id="payTotal">0</span>원</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="memo">
+      날짜별 칸에 숫자만 입력하면 자동 저장됩니다.<br>
+      예: 2시간은 2, 1시간 30분은 1.5<br>
+      시급도 자동 저장되며, 다시 열어도 유지됩니다.
+    </div>
+  </div>
+</div>
+
+<script>
+let current=new Date();
+current.setDate(1);
+
+const weekdays=['일','월','화','수','목','금','토'];
+const hourlyPayInput=document.getElementById('hourlyPay');
+
+hourlyPayInput.value=localStorage.getItem('overtime_hourlyPay')||'';
+
+hourlyPayInput.addEventListener('input',()=>{
+  localStorage.setItem('overtime_hourlyPay',hourlyPayInput.value);
+  calculateTotal();
+});
+
+function keyOf(year,month,date){
+  return `overtime_${year}-${String(month).padStart(2,'0')}-${String(date).padStart(2,'0')}`;
+}
+
+function render(){
+  const year=current.getFullYear();
+  const month=current.getMonth()+1;
+  const cal=document.getElementById('calendar');
+  cal.innerHTML='';
+
+  document.getElementById('monthTitle').textContent=`${year}년 ${month}월`;
+
+  weekdays.forEach(w=>{
+    const el=document.createElement('div');
+    el.className='weekday';
+    el.textContent=w;
+    cal.appendChild(el);
+  });
+
+  const firstDay=new Date(year,month-1,1);
+  const startDay=firstDay.getDay();
+  const lastDate=new Date(year,month,0).getDate();
+  const prevLastDate=new Date(year,month-1,0).getDate();
+
+  for(let i=0;i<42;i++){
+    const cell=document.createElement('div');
+    cell.className='day';
+
+    let dateNum;
+    let isCurrentMonth=true;
+
+    if(i<startDay){
+      dateNum=prevLastDate-startDay+i+1;
+      isCurrentMonth=false;
+      cell.classList.add('other');
+    }else if(i>=startDay+lastDate){
+      dateNum=i-startDay-lastDate+1;
+      isCurrentMonth=false;
+      cell.classList.add('other');
+    }else{
+      dateNum=i-startDay+1;
+    }
+
+    const date=document.createElement('div');
+    date.className='date';
+    date.textContent=dateNum;
+
+    const label=document.createElement('div');
+    label.className='label';
+    label.textContent='야근시간';
+
+    const input=document.createElement('input');
+    input.type='number';
+    input.step='0.5';
+    input.min='0';
+    input.placeholder='0';
+
+    if(isCurrentMonth){
+      const saveKey=keyOf(year,month,dateNum);
+      input.value=localStorage.getItem(saveKey)||'';
+
+      input.addEventListener('input',()=>{
+        if(input.value===''){
+          localStorage.removeItem(saveKey);
+        }else{
+          localStorage.setItem(saveKey,input.value);
+        }
+        calculateTotal();
+      });
+    }else{
+      input.disabled=true;
+    }
+
+    cell.appendChild(date);
+    cell.appendChild(label);
+    cell.appendChild(input);
+    cal.appendChild(cell);
+  }
+
+  calculateTotal();
+}
+
+function calculateTotal(){
+  const year=current.getFullYear();
+  const month=current.getMonth()+1;
+  const lastDate=new Date(year,month,0).getDate();
+
+  let total=0;
+
+  for(let d=1;d<=lastDate;d++){
+    const value=parseFloat(localStorage.getItem(keyOf(year,month,d)));
+    if(!isNaN(value)) total+=value;
+  }
+
+  const hourlyPay=parseFloat(hourlyPayInput.value);
+  const payTotal=isNaN(hourlyPay)?0:total*hourlyPay;
+
+  document.getElementById('total').textContent=total;
+  document.getElementById('payHours').textContent=total;
+  document.getElementById('payTotal').textContent=Math.floor(payTotal).toLocaleString();
+}
+
+function moveMonth(n){
+  current.setMonth(current.getMonth()+n);
+  render();
+}
+
+function clearMonth(){
+  if(!confirm('이번 달 야근 기록을 전부 삭제할까요?')) return;
+
+  const year=current.getFullYear();
+  const month=current.getMonth()+1;
+  const lastDate=new Date(year,month,0).getDate();
+
+  for(let d=1;d<=lastDate;d++){
+    localStorage.removeItem(keyOf(year,month,d));
+  }
+
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
